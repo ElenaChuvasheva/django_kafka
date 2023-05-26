@@ -22,6 +22,5 @@ def kafka_save_response_middleware(get_response):
             result_json = json.dumps(make_kafka_data(request, response))
             producer.produce('django-responses', value=result_json.encode('utf-8'))
             producer.flush()
-        print(type(response))
         return response
     return middleware
