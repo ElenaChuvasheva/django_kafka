@@ -13,19 +13,18 @@ class SomeModelViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                        viewsets.GenericViewSet):
     queryset = SomeModel.objects.all()
     serializer_class = SomeModelSerializer
-
+    
     thread_stop = True
 
     def go(self):
-        while not thread_stop:
+        while not SomeModelViewSet.thread_stop:
             print('mega task process')
             time.sleep(5)
 
     @action(detail=False, url_path='start_update_from_kafka', methods=['POST'])
     def start_update_from_kafka(self, request):
-        global thread_stop
-        if thread_stop:
-            thread_stop = False
+        if SomeModelViewSet.thread_stop:
+            SomeModelViewSet.thread_stop = False
             t = Thread(target=self.go)
             print(active_count())
             t.start()
@@ -33,6 +32,5 @@ class SomeModelViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
 
     @action(detail=False, url_path='stop_update_from_kafka', methods=['POST'])
     def stop_update_from_kafka(self, request):
-        global thread_stop
-        thread_stop = True
+        SomeModelViewSet.thread_stop = True
         return Response(status=status.HTTP_204_NO_CONTENT)
