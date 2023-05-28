@@ -7,7 +7,7 @@ class SomeModel(models.Model):
     class Meta:
         verbose_name = 'Модель'
         verbose_name_plural = 'Модели'
-        ordering = ('pk',)
+        ordering = ('-pk',)
 
     def __str__(self):
         return self.name
