@@ -1,15 +1,20 @@
 import json
+import os
 
 from confluent_kafka import Producer
+from dotenv import load_dotenv
 
-for i in range(10):
-    p = Producer({'bootstrap.servers': 'localhost:19092'})
+load_dotenv()
 
-    data = {'id': 134, 'name': 'NEW NAME!3333333'}
-    delete_data = {'id': 301}
+KAFKA_HOST = os.getenv('KAFKA_HOST', default='host.docker.internal')
+KAFKA_PORT = os.getenv('KAFKA_PORT', default='19092')
 
-    mess = json.dumps(data)
-    delete_mess = json.dumps(delete_data)
-    p.produce('updates', value=mess.encode('utf-8'))
-    p.produce('deletions', value=delete_mess.encode('utf-8'))
-    p.flush()
+
+p = Producer({'bootstrap.servers': f'{KAFKA_HOST}:{KAFKA_PORT}'})
+data = {'id': 2, 'name': 'NEW NAME!4444444'}
+delete_data = {'id': 1}
+mess = json.dumps(data)
+delete_mess = json.dumps(delete_data)
+p.produce('updates', value=mess.encode('utf-8'))
+p.produce('deletions', value=delete_mess.encode('utf-8'))
+p.flush()

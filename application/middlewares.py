@@ -2,6 +2,7 @@ import json
 
 import rest_framework
 from confluent_kafka import Producer
+from django.conf import settings
 
 
 def make_kafka_data(request, response):
@@ -18,9 +19,9 @@ def kafka_save_response_middleware(get_response):
         response = get_response(request)
         if isinstance(response, rest_framework.response.Response):
             producer = Producer(
-                {'bootstrap.servers': 'host.docker.internal:19092'})
+                {'bootstrap.servers': f'{settings.KAFKA_HOST}:{settings.KAFKA_PORT}'})
             result_json = json.dumps(make_kafka_data(request, response))
-            producer.produce('django-responses', value=result_json.encode('utf-8'))
+            producer.produce(settings.REST_LOG_TOPIC, value=result_json.encode('utf-8'))
             producer.flush()
         return response
     return middleware

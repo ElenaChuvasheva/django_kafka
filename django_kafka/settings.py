@@ -11,7 +11,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='very_$ecret!_key_@!!11')
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'web']
 CSRF_TRUSTED_ORIGINS = ['http://*.127.0.0.1', 'http://localhost']
 
 
@@ -81,6 +81,14 @@ DATABASES = {
         }
     }
 
+KAFKA_HOST = os.getenv('KAFKA_HOST', default='host.docker.internal')
+KAFKA_PORT = os.getenv('KAFKA_PORT', default='19092')
+UPDATES_TOPIC = os.getenv('UPDATES_TOPIC', default='updates')
+DELETE_TOPIC = os.getenv('DELETE_TOPIC', default='deletions')
+OBJECTS_TO_KAFKA_TOPIC = os.getenv('OBJECTS_TO_KAFKA_TOPIC', default='some_model_objects')
+REST_LOG_TOPIC = os.getenv('REST_LOG_TOPIC', default='django-responses')
+
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -107,5 +115,8 @@ USE_TZ = True
 
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+USE_DJANGO_JQUERY = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
