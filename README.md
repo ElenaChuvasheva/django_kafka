@@ -1,4 +1,5 @@
 # django_kafka
+Используется Python 3.10.
 ## Запуск
 
 Клонируйте репозиторий:
@@ -28,6 +29,18 @@ SECRET_KEY=django-insecure-8qy4qg1seks68+#4w1-2h$+6v68fb@!vck(+m8_3-w%eq2uee&
 Запустите команду сборки контейнеров с очередью и базой данных:
 ```
 docker-compose up
+```
+Создайте виртуальное окружение:
+```
+py -3.10 -m venv venv
+```
+Активируйте его:
+```
+venv\scripts\activate
+```
+Установите зависимости:
+```
+pip install -r requirements.txt
 ```
 Запустите миграции базы данных:
 ```
