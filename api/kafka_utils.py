@@ -51,8 +51,8 @@ def from_kafka_to_db(kafka_thread):
         kafka_thread.consumer.subscribe([settings.UPDATES_TOPIC])
         mess = kafka_thread.consumer.poll(1.0)
         if mess is not None:
-            data = mess.value().decode('utf-8')
             try:
+                data = mess.value().decode('utf-8')
                 serializer = SomeModelUpCreateSerializer(data=json.loads(data))
                 print('updating...')
                 if serializer.is_valid():
@@ -60,7 +60,7 @@ def from_kafka_to_db(kafka_thread):
                     with lock:
                         serializer.update_or_create()
                         print('!!!!!!!!!!UPDATED!!!!!!!!!!!')
-            except json.decoder.JSONDecodeError:
+            except (json.decoder.JSONDecodeError, AttributeError):
                 continue
 
 
@@ -71,15 +71,15 @@ def kafka_delete(kafka_thread):
         mess = kafka_thread.consumer.poll(1.0)
         print(mess)
         if mess is not None:
-            data = mess.value().decode('utf-8')
-            print(data)
             try:
+                data = mess.value().decode('utf-8')
+                print(data)
                 id = json.loads(data)['id']
                 print('deleting...')
                 with lock:
                     SomeModel.objects.filter(id=id).delete()
                     print('!!!!!!!!!!DELETED!!!!!!!!!!!')
-            except json.decoder.JSONDecodeError:
+            except (json.decoder.JSONDecodeError, AttributeError):
                 continue
 
 
