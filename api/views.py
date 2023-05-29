@@ -21,7 +21,6 @@ class SomeModelViewSet(mixins.ListModelMixin,
     delete_thread = KafkaThread()
 
     def list(self, *args, **kwargs):
-        print(lock)
         with lock:
             return super().list(args, kwargs)
 
@@ -30,14 +29,12 @@ class SomeModelViewSet(mixins.ListModelMixin,
     def start_upcreate_from_kafka(self, request):
         SomeModelViewSet.upcreate_thread.start_thread(
             consumer=upcreate_consumer, function=from_kafka_to_db)
-        print(active_count())
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, url_path='stop_upcreate_from_kafka',
             methods=['POST'])
     def stop_upcreate_from_kafka(self, request):
         SomeModelViewSet.upcreate_thread.stop_thread()
-        print(active_count())
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, url_path='start_delete_from_kafka',
