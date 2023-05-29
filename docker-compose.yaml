@@ -51,3 +51,15 @@ services:
     - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
     ports:
       - "14080:8080"
+
+  db:
+    image: postgres:alpine
+    volumes:
+      - db_value:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+    ports:
+    - "5432:5432"
+
+volumes:
+  db_value:
