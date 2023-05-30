@@ -56,7 +56,7 @@ def from_kafka_to_db(kafka_thread):
                 if serializer.is_valid():
                     with lock:
                         serializer.update_or_create()
-            except (json.decoder.JSONDecodeError, AttributeError):
+            except:
                 continue
 
 
@@ -70,7 +70,7 @@ def kafka_delete(kafka_thread):
                 id = json.loads(data)['id']
                 with lock:
                     SomeModel.objects.filter(id=id).delete()
-            except (json.decoder.JSONDecodeError, AttributeError):
+            except:
                 continue
 
 

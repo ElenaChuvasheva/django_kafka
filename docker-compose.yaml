@@ -82,7 +82,7 @@ services:
         - db
         - kafka
         - zookeeper
-      
+
 volumes:
   db_value:
   static_value:
