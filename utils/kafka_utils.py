@@ -7,6 +7,7 @@ from django.conf import settings
 
 from api.serializers import SomeModelSerializer, SomeModelUpCreateSerializer
 from application.models import SomeModel
+from datetime import datetime, timezone
 
 lock = Lock()
 
@@ -16,13 +17,15 @@ consumer_settings = {
         'auto.offset.reset': 'earliest'
 }
 
+producer_settings = {'bootstrap.servers': f'{settings.KAFKA_HOST}:{settings.KAFKA_PORT}'}
+
 upcreate_consumer = Consumer(
     {**consumer_settings, **{'group.id': 'pythonupcreate_consumer', }})
 delete_consumer = Consumer(
     {**consumer_settings, **{'group.id': 'pythondelete_consumer', }})
-producer = Producer(
-    {'bootstrap.servers': f'{settings.KAFKA_HOST}:{settings.KAFKA_PORT}'})
+producer = Producer(producer_settings)
 
+message_key = lambda: str(datetime.now(timezone.utc).timestamp())
 
 @dataclass
 class KafkaThread:
@@ -78,6 +81,6 @@ def object_to_kafka(obj):
     serializer = SomeModelSerializer(obj)
     data = json.dumps(serializer.data)
     producer.produce(
-        settings.OBJECTS_TO_KAFKA_TOPIC, value=data.encode('utf-8'))
+        settings.OBJECTS_TO_KAFKA_TOPIC, key=message_key(), value=data.encode('utf-8'))
     producer.flush()
     return serializer.data

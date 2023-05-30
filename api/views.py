@@ -5,7 +5,7 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.kafka_utils import (KafkaThread, delete_consumer, from_kafka_to_db,
+from utils.kafka_utils import (KafkaThread, delete_consumer, from_kafka_to_db,
                              kafka_delete, lock, object_to_kafka,
                              upcreate_consumer)
 from api.serializers import SomeModelSerializer
@@ -20,7 +20,7 @@ class SomeModelViewSet(mixins.ListModelMixin,
     upcreate_thread = KafkaThread()
     delete_thread = KafkaThread()
 
-    def list(self, *args, **kwargs):
+    def list(self, *args, **kwargs):        
         with lock:
             return super().list(args, kwargs)
 
