@@ -25,7 +25,7 @@ delete_consumer = Consumer(
     {**consumer_settings, **{'group.id': 'pythondelete_consumer', }})
 producer = Producer(producer_settings)
 
-message_key = lambda: str(datetime.now(timezone.utc).timestamp())
+message_key = lambda: str(int(datetime.now(timezone.utc).timestamp()))
 
 @dataclass
 class KafkaThread:
