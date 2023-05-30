@@ -9,10 +9,12 @@ load_dotenv()
 
 SECRET_KEY = os.getenv('SECRET_KEY', default='very_$ecret!_key_@!!11')
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'web']
-CSRF_TRUSTED_ORIGINS = ['http://*.127.0.0.1', 'http://localhost']
+CSRF_TRUSTED_ORIGINS = ['http://*.127.0.0.1', 'http://localhost', 'http://localhost:81']
+
+USE_DJANGO_JQUERY = True
 
 
 INSTALLED_APPS = [
@@ -116,7 +118,5 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
-USE_DJANGO_JQUERY = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
