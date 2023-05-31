@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass
-from threading import Lock, Thread
+from threading import Lock, Thread, active_count
 
 from confluent_kafka import Consumer, Producer
 from django.conf import settings
@@ -34,22 +34,27 @@ class KafkaThread:
     consumer = None
 
     def start_thread(self, consumer, function):
-        self.thread_stop = False
-        self.consumer = consumer
-        self.thread = Thread(
-            target=function, args=[self, ])
-        self.thread.start()
+        if self.thread is None:
+            with lock:
+                self.thread_stop = False
+            self.consumer = consumer
+            self.thread = Thread(
+                target=function, args=[self, ])
+            self.thread.start()
 
     def stop_thread(self):
-        if not self.thread_stop:
-            self.thread_stop = True
+        if self.thread is not None:
+            with lock:
+                self.thread_stop = True
             self.thread.join()
             self.thread = None
             self.consumer = None
 
-
 def from_kafka_to_db(kafka_thread):
-    while not kafka_thread.thread_stop:
+    while True:
+        with lock:
+            if kafka_thread.thread_stop:
+                break
         kafka_thread.consumer.subscribe([settings.UPDATES_TOPIC])
         mess = kafka_thread.consumer.poll(1.0)
         if mess is not None:
@@ -64,7 +69,10 @@ def from_kafka_to_db(kafka_thread):
 
 
 def kafka_delete(kafka_thread):
-    while not kafka_thread.thread_stop:
+    while True:
+        with lock:
+            if kafka_thread.thread_stop:
+                break
         kafka_thread.consumer.subscribe([settings.DELETE_TOPIC])
         mess = kafka_thread.consumer.poll(1.0)
         if mess is not None:
