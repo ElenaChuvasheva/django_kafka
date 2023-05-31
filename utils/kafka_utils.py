@@ -1,13 +1,14 @@
 import json
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from threading import Lock, Thread, active_count
+from typing import Any, Callable
 
 from confluent_kafka import Consumer, Producer
 from django.conf import settings
 
 from api.serializers import SomeModelSerializer, SomeModelUpCreateSerializer
 from application.models import SomeModel
-from datetime import datetime, timezone
 
 lock = Lock()
 
@@ -25,21 +26,24 @@ delete_consumer = Consumer(
     {**consumer_settings, **{'group.id': 'pythondelete_consumer', }})
 producer = Producer(producer_settings)
 
-message_key = lambda: str(int(datetime.now(timezone.utc).timestamp()))
+
+def message_key():
+    return str(int(datetime.now(timezone.utc).timestamp()))
+
 
 @dataclass
 class KafkaThread:
-    thread = None
-    thread_stop = True
-    consumer = None
+    thread: Thread = None
+    thread_stop: bool = True
+    consumer: Consumer = None
+    function: Any = None
 
-    def start_thread(self, consumer, function):
+    def start_thread(self):
         if self.thread is None:
             with lock:
                 self.thread_stop = False
-            self.consumer = consumer
             self.thread = Thread(
-                target=function, args=[self, ])
+                target=self.function, args=[self, ])
             self.thread.start()
 
     def stop_thread(self):
@@ -48,7 +52,7 @@ class KafkaThread:
                 self.thread_stop = True
             self.thread.join()
             self.thread = None
-            self.consumer = None
+
 
 def from_kafka_to_db(kafka_thread):
     while True:
