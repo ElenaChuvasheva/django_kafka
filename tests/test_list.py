@@ -9,7 +9,7 @@ from tests.utils import delete_topics
 from utils.kafka_utils import lock
 from django.test.client import Client
 
-client = Client()
+client = APIClient()
 
 
 class GetAllItemsTest(TransactionTestCase):
