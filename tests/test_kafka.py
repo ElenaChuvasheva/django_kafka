@@ -2,26 +2,18 @@ import json
 
 from confluent_kafka import Producer
 from django.conf import settings
-from django.test import Client, TestCase, TransactionTestCase
+from django.test import Client, TransactionTestCase
 from django.urls import reverse
 from freezegun import freeze_time
-from rest_framework.test import APIClient
 
 from api.serializers import SomeModelSerializer
 from application.models import SomeModel
-from tests.utils import create_topics, delete_topics
 from utils.kafka_utils import lock, producer_settings
 
-client = APIClient()
+client = Client()
 
 
 class KafkaTest(TransactionTestCase):
-    @classmethod
-    def setUpClass(cls):
-        pass
-        # create_topics([settings.OBJECTS_TO_KAFKA_TOPIC, settings.DELETE_TOPIC])
-
-    
     def setUp(self):
         with lock:
             SomeModel.objects.create(id=1, name="smth1")
@@ -29,12 +21,6 @@ class KafkaTest(TransactionTestCase):
     def tearDown(self):
         with lock:
             SomeModel.objects.all().delete()
-
-    @classmethod
-    def tearDownClass(cls):
-        # в teardown модуля?
-        delete_topics(
-            [settings.OBJECTS_TO_KAFKA_TOPIC, settings.DELETE_TOPIC, settings.REST_LOG_TOPIC, settings.UPDATES_TOPIC])
 
     @freeze_time("2012-01-01")
     def test_post_to_kafka(self):
@@ -55,17 +41,10 @@ class KafkaTest(TransactionTestCase):
             settings.DELETE_TOPIC, value=data.encode('utf-8'))
         producer.flush()
         import time
-        response = client.delete(reverse('api:smth-start-delete-from-kafka'))        
+        response = client.delete(reverse('api:smth-start-delete-from-kafka'))
         time.sleep(5)
         assert response.status_code == 200
         response = client.post(reverse('api:smth-stop-delete-from-kafka'))
-
-        # убрать в teardown модуля
-        from utils.kafka_utils import delete_consumer
-        consumer_id = delete_consumer.memberid()
-        delete_consumer.close()        
-        from tests.utils import admin_client
-        admin_client.delete_consumer_groups([consumer_id])
         with lock:
             assert SomeModel.objects.count() == 1
 
@@ -81,12 +60,5 @@ class KafkaTest(TransactionTestCase):
         time.sleep(5)
         assert response.status_code == 200
         response = client.post(reverse('api:smth-stop-upcreate-from-kafka'))
-
-        # убрать в teardown модуля
-        from utils.kafka_utils import upcreate_consumer
-        consumer_id = upcreate_consumer.memberid()
-        upcreate_consumer.close()        
-        from tests.utils import admin_client
-        admin_client.delete_consumer_groups([consumer_id])
         with lock:
             assert SomeModel.objects.count() == 2

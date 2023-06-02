@@ -1,15 +1,12 @@
-from django.conf import settings
-from django.test import TestCase, TransactionTestCase
+from django.test import TransactionTestCase
+from django.test.client import Client
 from django.urls import reverse
-from rest_framework.test import APIClient
 
 from api.serializers import SomeModelSerializer
 from application.models import SomeModel
-from tests.utils import delete_topics
 from utils.kafka_utils import lock
-from django.test.client import Client
 
-client = APIClient()
+client = Client()
 
 
 class GetAllItemsTest(TransactionTestCase):
@@ -22,12 +19,6 @@ class GetAllItemsTest(TransactionTestCase):
         ]
         with lock:
             SomeModel.objects.bulk_create(bulk)
-
-    @classmethod
-    def tearDownClass(cls):
-        # в teardown модуля?
-        delete_topics(
-            [settings.REST_LOG_TOPIC])
 
     @classmethod
     def tearDownClass(cls):

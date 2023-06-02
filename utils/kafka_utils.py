@@ -5,12 +5,16 @@ from threading import Lock, Thread, active_count
 from typing import Any, Callable
 
 from confluent_kafka import Consumer, Producer
+from confluent_kafka.admin import AdminClient, NewTopic
 from django.conf import settings
 
 from api.serializers import SomeModelSerializer, SomeModelUpCreateSerializer
 from application.models import SomeModel
 
 lock = Lock()
+
+client_conf = {'bootstrap.servers': f'{settings.KAFKA_HOST}:{settings.KAFKA_PORT}'}
+admin_client = AdminClient(client_conf)
 
 consumer_settings = {
         'bootstrap.servers': f'{settings.KAFKA_HOST}:{settings.KAFKA_PORT}',
@@ -21,11 +25,9 @@ consumer_settings = {
 producer_settings = {'bootstrap.servers': f'{settings.KAFKA_HOST}:{settings.KAFKA_PORT}'}
 
 upcreate_consumer = Consumer(
-    {**consumer_settings, **{'group.id': 'pythonupcreate_consumer', }}) if not settings.TEST_MODE else Consumer(
-    {**consumer_settings, **{'group.id': 'pythonupcreate_consumer_test', }})
+    {**consumer_settings, **{'group.id': settings.UPCREATE_CONSUMER_GROUP_ID, }})
 delete_consumer = Consumer(
-    {**consumer_settings, **{'group.id': 'pythondelete_consumer', }}) if not settings.TEST_MODE else Consumer(
-    {**consumer_settings, **{'group.id': 'pythondelete_consumer_test', }})
+    {**consumer_settings, **{'group.id': settings.DELETE_CONSUMER_GROUP_ID, }})
 producer = Producer(producer_settings)
 
 
@@ -93,6 +95,7 @@ def kafka_delete(kafka_thread):
                 continue
     kafka_thread.consumer.commit()
 
+
 def object_to_kafka(obj):
     serializer = SomeModelSerializer(obj)
     data = json.dumps(serializer.data)
@@ -102,3 +105,30 @@ def object_to_kafka(obj):
     in_queue = producer.flush()
     response_data = {**serializer.data, 'key': key, 'in_queue': in_queue}
     return response_data
+
+
+def kill_consumer(consumer):
+    consumer_id = consumer.memberid()
+    consumer.close()
+    admin_client.delete_consumer_groups([consumer_id])
+
+
+def delete_topics(topic_names):
+    fs = admin_client.delete_topics(topic_names, operation_timeout=30)
+    for topic, f in fs.items():
+        try:
+            f.result()
+            print("Topic {} deleted".format(topic))
+        except Exception as e:
+            print("Failed to delete topic {}: {}".format(topic, e))
+
+
+def create_topics(topic_names):
+    topics = [NewTopic(name) for name in topic_names]
+    fs = admin_client.create_topics(topics)
+    for topic, f in fs.items():
+        try:
+            f.result()  # The result itself is None
+            print("Topic {} created".format(topic))
+        except Exception as e:
+            print("Failed to create topic {}: {}".format(topic, e))
