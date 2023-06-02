@@ -1,7 +1,11 @@
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
+
+
+TEST_MODE = 'test' in sys.argv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -85,10 +89,10 @@ DATABASES = {
 
 KAFKA_HOST = os.getenv('KAFKA_HOST', default='host.docker.internal')
 KAFKA_PORT = os.getenv('KAFKA_PORT', default='19092')
-UPDATES_TOPIC = os.getenv('UPDATES_TOPIC', default='updates')
-DELETE_TOPIC = os.getenv('DELETE_TOPIC', default='deletions')
-OBJECTS_TO_KAFKA_TOPIC = os.getenv('OBJECTS_TO_KAFKA_TOPIC', default='some_model_objects')
-REST_LOG_TOPIC = os.getenv('REST_LOG_TOPIC', default='django-responses')
+UPDATES_TOPIC = os.getenv('UPDATES_TOPIC', default='updates') if not TEST_MODE else f'updates_tests'
+DELETE_TOPIC = os.getenv('DELETE_TOPIC', default='deletions') if not TEST_MODE else f'deletion_tests'
+OBJECTS_TO_KAFKA_TOPIC = os.getenv('OBJECTS_TO_KAFKA_TOPIC', default='some_model_objects') if not TEST_MODE else 'some_model_objects_tests'
+REST_LOG_TOPIC = os.getenv('REST_LOG_TOPIC', default='django-responses') if not TEST_MODE else 'django_responses_tests'
 
 
 AUTH_PASSWORD_VALIDATORS = [

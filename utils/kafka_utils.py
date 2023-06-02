@@ -21,9 +21,11 @@ consumer_settings = {
 producer_settings = {'bootstrap.servers': f'{settings.KAFKA_HOST}:{settings.KAFKA_PORT}'}
 
 upcreate_consumer = Consumer(
-    {**consumer_settings, **{'group.id': 'pythonupcreate_consumer', }})
+    {**consumer_settings, **{'group.id': 'pythonupcreate_consumer', }}) if not settings.TEST_MODE else Consumer(
+    {**consumer_settings, **{'group.id': 'pythonupcreate_consumer_test', }})
 delete_consumer = Consumer(
-    {**consumer_settings, **{'group.id': 'pythondelete_consumer', }})
+    {**consumer_settings, **{'group.id': 'pythondelete_consumer', }}) if not settings.TEST_MODE else Consumer(
+    {**consumer_settings, **{'group.id': 'pythondelete_consumer_test', }})
 producer = Producer(producer_settings)
 
 
@@ -69,8 +71,7 @@ def from_kafka_to_db(kafka_thread):
                     with lock:
                         serializer.update_or_create()
             except:
-                continue
-
+                continue    
 
 def kafka_delete(kafka_thread):
     while True:
@@ -80,19 +81,24 @@ def kafka_delete(kafka_thread):
         kafka_thread.consumer.subscribe([settings.DELETE_TOPIC])
         mess = kafka_thread.consumer.poll(1.0)
         if mess is not None:
+            print(mess)
             try:
                 data = mess.value().decode('utf-8')
+                print(data)
                 id = json.loads(data)['id']
+                print(f'mess_id={id}')
                 with lock:
                     SomeModel.objects.filter(id=id).delete()
             except:
                 continue
-
+    kafka_thread.consumer.commit()
 
 def object_to_kafka(obj):
     serializer = SomeModelSerializer(obj)
     data = json.dumps(serializer.data)
+    key = message_key()
     producer.produce(
-        settings.OBJECTS_TO_KAFKA_TOPIC, key=message_key(), value=data.encode('utf-8'))
-    producer.flush()
-    return serializer.data
+        settings.OBJECTS_TO_KAFKA_TOPIC, key=key, value=data.encode('utf-8'))
+    in_queue = producer.flush()
+    response_data = {**serializer.data, 'key': key, 'in_queue': in_queue}
+    return response_data

@@ -10,8 +10,10 @@ services:
     ports:
       - "2181:2181"
     volumes: 
-      - ./zoo/data:/var/lib/zookeeper/data
-      - ./zoo/log:/var/lib/zookeeper/log
+      - zoodata_value:/var/lib/zookeeper/data
+      - zoolog_value:/var/lib/zookeeper/log
+#      - ./zoo/data:/var/lib/zookeeper/data
+#      - ./zoo/log:/var/lib/zookeeper/log
 
   kafka:
     image: confluentinc/cp-kafka:latest
@@ -30,7 +32,7 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     volumes: 
-      - ./kafka/data:/var/lib/kafka/data
+      - kafka_value:/var/lib/kafka/data
 
   kafdrop:
     image: obsidiandynamics/kafdrop
@@ -59,22 +61,22 @@ services:
     env_file:
       - ./.env
     ports:
-      - "5432:5432"
+      - "15432:5432"
 
-  web:
-      build: .
-      restart: always
-      volumes:
-        - static_value:/app/static/
-      env_file:
-        - ./.env
-      depends_on:
-        - db
-        - kafka
-        - zookeeper
-      ports:
-        - "8000:8000"
+  # web:
+  #     build: .
+  #     restart: always
+  #     env_file:
+  #       - ./.env
+  #     depends_on:
+  #       - db
+  #       - kafka
+  #       - zookeeper
+  #     ports:
+  #       - "8000:8000"
 
 volumes:
+  zoodata_value:
+  zoolog_value:
   db_value:
-  static_value:
+  kafka_value:
