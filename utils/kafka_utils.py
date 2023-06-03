@@ -1,3 +1,4 @@
+from django.db import connection
 import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -72,6 +73,7 @@ def from_kafka_to_db(kafka_thread):
                 if serializer.is_valid():
                     with lock:
                         serializer.update_or_create()
+                        connection.close()
             except:
                 continue    
 
@@ -91,9 +93,9 @@ def kafka_delete(kafka_thread):
                 print(f'mess_id={id}')
                 with lock:
                     SomeModel.objects.filter(id=id).delete()
+                    connection.close()
             except:
                 continue
-    kafka_thread.consumer.commit()
 
 
 def object_to_kafka(obj):
