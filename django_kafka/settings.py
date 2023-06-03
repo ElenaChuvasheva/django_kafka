@@ -13,7 +13,7 @@ load_dotenv()
 
 SECRET_KEY = os.getenv('SECRET_KEY', default='very_$ecret!_key_@!!11')
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'web']
 CSRF_TRUSTED_ORIGINS = ['http://*.127.0.0.1', 'http://localhost', 'http://localhost:81']
@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'django_kafka.wsgi.application'
 
 DATABASES = {
         'default': {
-            'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
+            'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql_psycopg2'),
             'NAME': os.getenv('DB_NAME', default='postgres'),
             'USER': os.getenv('POSTGRES_USER', default='postgres'),
             'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='abcd1234'),
@@ -86,6 +86,7 @@ DATABASES = {
             'PORT': os.getenv('DB_PORT', default='5432')
         }
     }
+print(DATABASES['default'])
 
 KAFKA_HOST = os.getenv('KAFKA_HOST', default='host.docker.internal')
 KAFKA_PORT = os.getenv('KAFKA_PORT', default='19092')
