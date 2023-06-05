@@ -32,6 +32,10 @@ class KafkaTest(TransactionTestCase):
         data = {**serializer.data, 'key': '1325376000', 'in_queue': 0}
         assert response.data == data
 
+    def test_post_unexisting_to_kafka(self):
+        response = client.post(reverse('api:smth-write-to-kafka', args=['2']))
+        assert response.status_code == 404
+
     def test_delete_from_kafka(self):
         producer = Producer(producer_settings)
         data = json.dumps({'id': 2})
@@ -56,7 +60,7 @@ class KafkaTest(TransactionTestCase):
             settings.UPDATES_TOPIC, value=data.encode('utf-8'))
         producer.flush()
         import time
-        response = client.post(reverse('api:smth-start-upcreate-from-kafka'))        
+        response = client.post(reverse('api:smth-start-upcreate-from-kafka'))
         time.sleep(5)
         assert response.status_code == 200
         response = client.post(reverse('api:smth-stop-upcreate-from-kafka'))
