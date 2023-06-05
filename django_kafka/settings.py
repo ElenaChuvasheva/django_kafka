@@ -13,7 +13,7 @@ load_dotenv()
 
 SECRET_KEY = os.getenv('SECRET_KEY', default='very_$ecret!_key_@!!11')
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'web']
 CSRF_TRUSTED_ORIGINS = ['http://*.127.0.0.1', 'http://localhost', 'http://localhost:81']
