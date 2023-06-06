@@ -30,27 +30,15 @@ SECRET_KEY=django-insecure-8qy4qg1seks68+#4w1-2h$+6v68fb@!vck(+m8_3-w%eq2uee&
 ```
 docker-compose up
 ```
-Создайте виртуальное окружение:
+Примените миграции базы данных:
 ```
-py -3.10 -m venv venv
-```
-Активируйте его:
-```
-venv\scripts\activate
-```
-Установите зависимости:
-```
-pip install -r requirements.txt
-```
-Запустите миграции базы данных:
-```
-python manage.py migrate
-```
-Запустите сервер:
-```
-python manage.py runserver
+docker-compose exec web python manage.py migrate
 ```
 Интерфейс очереди запустится по адресу localhost:14080, сервер - по адресу localhost:8000.
+Запуск тестов:
+```
+docker-compose exec web python manage.py test
+```
 
 ## Эндпоинты
   
